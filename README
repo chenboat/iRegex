@@ -1,0 +1,3 @@
+iRegex is intended to be a library for indexing text documents for faster regular expression matching. It does so by filtering out documents based on index information and regular expressions. It uses Lucene for indexing and returns a superset of all documents containing the real matches.
+
+
