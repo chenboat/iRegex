@@ -18,16 +18,22 @@ import java.util.HashSet;
  * A customized analyzer which extracts all distinct n-grams for the file reader stream
  */
 public final class NGramAnalyzer extends Analyzer{
+    NGramTokenizer tokenizer;
+
+    public NGramAnalyzer(NGramTokenizer nGramTokenizer){
+        tokenizer = nGramTokenizer;
+    }
+
     @Override
     public TokenStream tokenStream(String fieldName, Reader reader) {
-        return new NGramTokenizer(reader);
+        return tokenizer.setReader(reader);
     }
     
     public static void main(String[] args) throws Exception
     {
         String text = "Hello";
         System.out.println("");
-        Analyzer analyzer = new NGramAnalyzer();
+        Analyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
         System.out.println("\t" + analyzer.getClass().getName() + ":");
         System.out.print("\t\t");
         TokenStream stream = analyzer.tokenStream("contents", new StringReader(text));

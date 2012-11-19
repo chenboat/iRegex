@@ -1,18 +1,17 @@
 package indexer;
 
-import Utility.Utility;
+import com.google.inject.Inject;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 import java.io.*;
 import java.util.*;
 
 /**
- * Created by User: ting
+ * Created by User: ting chen
  * Date: 8/29/12
  * Time: 5:27 PM
  *
@@ -20,54 +19,65 @@ import java.util.*;
  */
 public class NGramIndexer {
     private String dataSrc;
-    private String outputDir;
-    private static final int MAX_NGRAM_LENGTH = 1;
+    private NGramAnalyzer analyzer;
 
     /**
      * @param dataSrc the directory root of all files to index
-     * @param outputDir the directory where the indices file will be stored
+     * @param analyzer the n-gram analyzer used by the indexer
      */
-    public NGramIndexer(String dataSrc,String outputDir){
+    @Inject
+    public NGramIndexer(String dataSrc, NGramAnalyzer analyzer){
         this.dataSrc = dataSrc;
-        this.outputDir = outputDir;
+        this.analyzer = analyzer;
     }
 
     /**
      * This method will scan each document and extract all n-gram up to length
      * K from the document. The mapping from docID to a set of k-grams will be fed
      * into a Lucene indexer.
+     * @param index the output index directory
+     * @throws java.io.IOException when reading from a file or writing to lucene index
      */
-    public void constructIndex(){
+    public void constructIndex(Directory index) throws IOException{
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
+
+        IndexWriter w = new IndexWriter(index,config);
+        
+        File f = new File(dataSrc);
+        // iterate through all the files root at the data src directory
+        Queue<File> q = new LinkedList<File>();
+        q.add(f);
+        
+        File fi;
+        
+        while((fi=q.poll())!= null)
+        {
+            if(fi.isFile()){
+                String s1 = readFileContent(fi);
+                addDoc(w,s1);
+            }
+            else{ // a directory itself
+                Collections.addAll(q, fi.listFiles());
+            }
+        }
+        w.close();  
         
     }
 
-    public static void main(String[] args) throws IOException {
-        // Add documents to the index
-        Directory index = new RAMDirectory();
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,new NGramAnalyzer());
-        
-        IndexWriter w = new IndexWriter(index,config);
-        addDoc(w, "hello");
-        addDoc(w, "ting");
-        addDoc(w, "test it");
-        addDoc(w, "tim");
-        w.close();
-
-        // Query the index
-        String query = "ti";
-        IndexReader reader = IndexReader.open(index);
-        TermEnum terms = reader.terms();
-        while(terms.next())
-        {
-            Term t = terms.term();
-            TermDocs docs = reader.termDocs(t);
-            System.out.print(t + "\t|" );
-            while(docs.next()){
-                System.out.print(docs.doc()+" ");
+    private String readFileContent(File f) {
+        StringBuilder file_contents = new StringBuilder(3*IndexerConfig.FS_BLOCK_SIZE);
+        try{
+            FileInputStream fs = new FileInputStream(f);
+            byte[] bs = new byte[IndexerConfig.FS_BLOCK_SIZE];
+            int len;
+            while((len=fs.read(bs))!= -1){
+                file_contents.append(new String(bs,0,len));
             }
-            System.out.println();
+            fs.close();
+        }catch(Exception e){
+            System.out.println(e.toString());
         }
-        reader.close();
+        return file_contents.toString();
     }
 
     private static void addDoc(IndexWriter w, String value) throws IOException {

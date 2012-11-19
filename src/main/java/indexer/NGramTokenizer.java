@@ -15,16 +15,21 @@ import java.util.Iterator;
  */
 public final class NGramTokenizer extends Tokenizer{
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-    private static final int MAX_NGRAM_LENGTH = 2;
+    private int MAX_NGRAM_LENGTH = 2;
     private Iterator<String> iterator;
 
     /**
      * The first implementation which just parses the entire document and loads
      * its gram set into a hashset iterator during object init;
      * TODO: replace it with a more efficient streaming version
-     * @param reader
+     * @param kgramLength the length of max index grams
      */
-    public NGramTokenizer(Reader reader) {
+    public NGramTokenizer(int kgramLength) {
+      MAX_NGRAM_LENGTH = kgramLength;
+    }
+    
+    public NGramTokenizer setReader(Reader reader)
+    {
         StringBuilder fileContent = new StringBuilder(3*IndexerConfig.FS_BLOCK_SIZE);
         try{
             char[] bs = new char[IndexerConfig.FS_BLOCK_SIZE];
@@ -49,16 +54,18 @@ public final class NGramTokenizer extends Tokenizer{
         }
 
         iterator = grams.iterator();
+        return this;
     }
 
     @Override
     public boolean incrementToken() throws IOException {
+        if(iterator == null) return false;
         if(iterator.hasNext())
         {
             termAtt.setEmpty();
             termAtt.append(iterator.next());
             return true;
         }
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        return false;
     }
 }
