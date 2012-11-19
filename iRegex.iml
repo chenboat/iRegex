@@ -16,6 +16,7 @@
     <orderEntry type="library" name="lucene-core-3.6.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="junit-4.10" level="project" />
     <orderEntry type="library" name="com.google.guava:guava:13.0.1" level="project" />
+    <orderEntry type="library" name="com.google.inject:guice:3.0-rc3" level="project" />
   </component>
 </module>
 
