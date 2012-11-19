@@ -16,9 +16,7 @@ import java.io.IOException;
  * Time: 3:31 PM
  */
 public class TestNGramAnalyzer extends TestCase {
-    public final NGramAnalyzer analyzer = new NGramAnalyzer();
-
-
+    public final NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
 
     public void testNGramAnalyzer() throws IOException {
         // Add documents to the index
