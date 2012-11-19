@@ -1,6 +1,7 @@
 package Query;
 
 import indexer.NGramAnalyzer;
+import indexer.NGramTokenizer;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -38,7 +39,8 @@ public class TestIndexQuery extends TestCase {
     public void testIndexQueryOnRAMDir() throws IOException{
         // Add documents to the index
         Directory index = new RAMDirectory();
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,new NGramAnalyzer());
+        NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
 
         IndexWriter w = new IndexWriter(index,config);
         addDoc(w, "hello");
