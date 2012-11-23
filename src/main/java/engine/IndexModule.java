@@ -26,17 +26,17 @@ public class IndexModule extends AbstractModule {
     protected void configure() {
         //Bind the analyzer to ngram tokenizer
         bind(String.class)
-                .annotatedWith(Names.named("Source Directory"))
-                .toInstance("sourceData");
+                .annotatedWith(Names.named("source directory"))
+                .toInstance("/home/ting/Documents/iRegexData/Enron2Lvl");
     }
 
     @Provides
     NGramAnalyzer provideNGramAnalyzer() {
-        return new NGramAnalyzer(new NGramTokenizer(2));
+        return new NGramAnalyzer(new NGramTokenizer(4));
     }
 
     public static void main(String[] args) throws IOException{
-        Directory indexDir = new NIOFSDirectory(new File("destDir"));
+        Directory indexDir = new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/tmp"));
 
         Injector injector = Guice.createInjector(new IndexModule());
         NGramIndexer indexer = injector.getInstance(NGramIndexer.class);
