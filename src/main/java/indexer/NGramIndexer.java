@@ -1,6 +1,7 @@
 package indexer;
 
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.*;
@@ -26,7 +27,7 @@ public class NGramIndexer {
      * @param analyzer the n-gram analyzer used by the indexer
      */
     @Inject
-    public NGramIndexer(String dataSrc, NGramAnalyzer analyzer){
+    public NGramIndexer(@Named("source directory")  String dataSrc, NGramAnalyzer analyzer){
         this.dataSrc = dataSrc;
         this.analyzer = analyzer;
     }
@@ -56,7 +57,7 @@ public class NGramIndexer {
                 String s1 = readFileContent(fi);
                 addDoc(w,s1);
             }
-            else{ // a directory itself
+            else if(fi.isDirectory()){ // a directory itself
                 Collections.addAll(q, fi.listFiles());
             }
         }
