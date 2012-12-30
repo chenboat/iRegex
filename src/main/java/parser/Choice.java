@@ -29,7 +29,8 @@ public class Choice extends Regex {
     {
         return thatOne;
     }
-    
+
+
     public String toString(){
         return "(" + thisOne + "|" + thatOne + ")";
     }

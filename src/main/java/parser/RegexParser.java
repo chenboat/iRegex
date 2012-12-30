@@ -10,16 +10,29 @@ package parser;
  * <term> ::= { <factor> }
 
  * <factor> ::= <base> { '*' }
-
+ *              | <base> { '+' }
+ *              | <base> { '?' }
+ *              | <base> { '{n}' }
+ *              | <base> { '{n,}' }
+ *              | <base> { '{n,m}' }
+ *
  * <base> ::= <char>
-    |  '\' <char>
-    |  '(' <regex> ')
+ *              |  '\' <char>
+ *              |  '(' <regex> ')
+ *              |  <charClass>
+ *
+ * <charClass> ::=  '[' { <charGroup> } ']'
+ *                 
+ * <charGroup> ::= <char> |
+ *               <charRange> |
+ *               <charClass>
+ * <charRange> ::= <char> '-' <char>
  */
 public class RegexParser {
     private String input;
     
     public static void main(String[] args){
-        RegexParser parser = new RegexParser("(abdfd|cf)*ddfd");
+        RegexParser parser = new RegexParser("[d-g[1-9]]");
         Regex regex = parser.parse();
         System.out.println(regex);
     }
@@ -92,15 +105,65 @@ public class RegexParser {
     private Regex factor() {
         Regex base = base() ;
 
-        while (more() && peek() == '*') {
-            eat('*') ;
-            base = new Repetition(base) ;
+        while (more() && (peek() == '*' ||
+                          peek() == '?' ||
+                          peek() == '+' ||
+                          peek() == '{')) {
+            base = eatRepetition(base) ;
         }
-
-        return base ;
-
-
+        return base;
     }
+
+    /**
+     * 
+     * @param base the internal regex of the returned repetition 
+     * @return the repetition with min,max 
+     */
+    private Repetition eatRepetition(Regex base) {
+        char c = peek();
+        switch(c){
+            case '*':
+                eat('*');
+                return new Repetition(base,0,Integer.MAX_VALUE);
+            case '+':
+                eat('+');
+                return new Repetition(base,1,Integer.MAX_VALUE);
+            case '?':
+                eat('?');
+                return new Repetition(base,0,1);
+            default:
+                eat('{');
+                int min = eatNum();
+                int max;
+                if(peek() == '}')
+                    max = min; 
+                else{
+                    eat(',');
+                    if(peek() == '}'){
+                        max = Integer.MAX_VALUE;
+                    }else{
+                        max = eatNum();
+                    }
+                }
+                eat('}');
+                return new Repetition(base,min,max);
+        }
+    }
+
+    /**
+     * 
+     * @return the number which is the prefix of input
+     */
+    private int eatNum() {
+        int r = 0;
+        if('0' > peek() || peek() > '9')
+            throw new RuntimeException("Not a number within a {n,m} repetition structure: " + peek());
+        while(peek() >= '0' && peek() <='9'){
+            r = r * 10 + Integer.parseInt(String.valueOf(next()));
+        }
+        return r;
+    }
+
     private Regex base() {
         switch (peek()) {
             case '(':
@@ -113,10 +176,48 @@ public class RegexParser {
                 eat ('\\') ;
                 char esc = next() ;
                 return new Primitive(esc) ;
+            
+            case '[':
+                eat('[');
+                CharClass cg = charClass();
+                eat(']');
+                return cg;
 
             default:
                 return new Primitive(next()) ;
         }
+    }
+
+    /**
+     *
+     * @return the node representing the strings between '[' and ']' of a char class
+     */
+    private CharClass charClass() {
+        CharClass charClass = new CharClass();
+        char c;
+        while((c=peek()) != ']'){
+            if(c != '['){
+                if(input.length() > 1 && input.charAt(1) == '-'){ //char range
+                    char from = next();
+                    eat('-'); // consume -
+                    if(!more())
+                        throw new RuntimeException("Incomplete character range" + input);
+                    char to = next();
+                    for(char tmp = from; tmp <= to; tmp++){
+                        charClass.add(new Primitive(tmp));
+                    }
+                }
+                else{ // a single character option
+                    charClass.add(new Primitive(next()));
+                }
+            }
+            else{ //nested char classes
+               eat('['); //consume [
+               charClass.add(charClass().condense()); //recursively add the nested structure
+               eat(']');
+            }
+        }
+        return charClass;
     }
 
 }
