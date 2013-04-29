@@ -44,7 +44,28 @@ public class TestRegexParser extends TestCase{
     public void testNormalRepetition(){
         RegexParser parser = new RegexParser("a*");
         Regex regex = parser.parse();
-        assertEquals("One character rep: ", "(a)*" ,regex.toString());
+        assertEquals("One character *: ", "(a)*" ,regex.toString());
+
+        parser = new RegexParser("a+");
+        regex = parser.parse();
+        assertEquals("One character +: ", "(a)+" ,regex.toString());
+
+        parser = new RegexParser("a?");
+        regex = parser.parse();
+        assertEquals("One character +: ", "(a)?" ,regex.toString());
+
+        parser = new RegexParser("a{2,10}");
+        regex = parser.parse();
+        assertEquals("One character {n,m}: ", "(a){2,10}" ,regex.toString());
+
+        parser = new RegexParser("a{2,}");
+        regex = parser.parse();
+        assertEquals("One character {n,}: ", "(a){2,2147483647}" ,regex.toString());
+
+        parser = new RegexParser("a{2}");
+        regex = parser.parse();
+        assertEquals("One character {n,}: ", "(a){2,2}" ,regex.toString());
+
 
         parser = new RegexParser("(ab)*");
         regex = parser.parse();
@@ -81,6 +102,52 @@ public class TestRegexParser extends TestCase{
         regex = parser.parse();
         assertEquals("Star with nested sequence with star ", "(ac(b)*|((b)*|a(b)*))",regex.toString());
 
+    }
+
+
+    public void testJavaCharClassesOnly(){
+        RegexParser parser = new RegexParser("[ab]");
+        Regex regex = parser.parse();
+        assertEquals("Java char class rep: ", "(a|b)" ,regex.toString());
+
+        parser= new RegexParser("[a-c]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b)|c)" ,regex.toString());
+
+        parser= new RegexParser("[[a-c]]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b)|c)" ,regex.toString());
+
+        parser= new RegexParser("[1[a-c]]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "(1|((a|b)|c))" ,regex.toString());
+
+        parser= new RegexParser("[1a-c]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "(((1|a)|b)|c)" ,regex.toString());
+
+        parser= new RegexParser("[1a-c[f-g]]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((((1|a)|b)|c)|(f|g))" ,regex.toString());
+
+    }
+
+    public void testJavaCharClassesWithOthers(){
+        RegexParser parser = new RegexParser("[ab]*");
+        Regex regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b))*" ,regex.toString());
+
+        parser= new RegexParser("[ab]*de");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b))*de" ,regex.toString());
+
+        parser= new RegexParser("[ab]*(d|e)");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b))*(d|e)" ,regex.toString());
+
+        parser= new RegexParser("[ab]*[ab]");
+        regex = parser.parse();
+        assertEquals("Java char class rep: ", "((a|b))*(a|b)" ,regex.toString());
     }
 
 
