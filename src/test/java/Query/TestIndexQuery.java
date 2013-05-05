@@ -1,18 +1,21 @@
 package Query;
 
 import indexer.NGramAnalyzer;
+import indexer.NGramIndexer;
 import indexer.NGramTokenizer;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.junit.After;
 import org.junit.Before;
 import query.IndexQuery;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
@@ -79,16 +82,36 @@ public class TestIndexQuery extends TestCase {
         }else{
             System.out.println( " All docs are possible matches");
         }
-            
-        
-       
-        
+
         reader.close();    
     }
 
     private void addDoc(IndexWriter w, String value) throws IOException {
         Document doc = new Document();
-        doc.add(new Field("", value, Field.Store.YES, Field.Index.ANALYZED));
+        doc.add(new Field(NGramIndexer.DOC_FIELD_NAME, value, Field.Store.YES, Field.Index.ANALYZED));
         w.addDocument(doc);
+    }
+
+    public void testIndexQueryOnDiskDir() throws IOException{
+        // Examine the index on disk
+        IndexReader reader = IndexReader.open(
+                new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k")));
+
+        // Prune for a dummy regex
+        IndexQuery indexQuery = new IndexQuery(reader);
+        Set<Integer> set = indexQuery.getPrunedSet("Les Rawson");
+
+        System.out.print("Pruned set for on disk index: ");
+        if(set != null){
+            Iterator<Integer> itr = set.iterator();
+            while(itr.hasNext()){
+                System.out.print(itr.next() + " ");
+            }
+            System.out.println("| " + set.size() + " docs in total");
+        }else{
+            System.out.println( " All docs are possible matches");
+        }
+
+        reader.close();
     }
 }

@@ -27,7 +27,7 @@ public class IndexModule extends AbstractModule {
         //Bind the analyzer to ngram tokenizer
         bind(String.class)
                 .annotatedWith(Names.named("source directory"))
-                .toInstance("/home/ting/Documents/iRegexData/Enron2Lvl");
+                .toInstance("/home/ting/Documents/iRegexData/Enron2Lvl/dir0");
     }
 
     @Provides
@@ -36,11 +36,12 @@ public class IndexModule extends AbstractModule {
     }
 
     public static void main(String[] args) throws IOException{
-        Directory indexDir = new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/tmp"));
+        Directory indexDir = new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k/"));
 
         Injector injector = Guice.createInjector(new IndexModule());
         NGramIndexer indexer = injector.getInstance(NGramIndexer.class);
         indexer.constructIndex(indexDir);
+
     }
 
 }

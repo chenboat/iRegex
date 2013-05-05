@@ -1,15 +1,11 @@
 package Servlets;
 
-import indexer.NGramAnalyzer;
-import indexer.NGramTokenizer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
+import org.apache.lucene.store.NIOFSDirectory;
 import query.IndexQuery;
 
 import javax.servlet.ServletConfig;
@@ -17,6 +13,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
@@ -36,26 +33,14 @@ public class Searchlet extends HttpServlet{
     public void init(ServletConfig config) throws ServletException{
         super.init(config);
         try{
-            initRAMIndex();
+            String path = config.getServletContext().getRealPath("/WEB-INF");
+            index = new NIOFSDirectory(new File(path + "/enron1k"));
         }catch (Exception e)
         {
            throw new ServletException(e);
         }
     }
 
-    private void initRAMIndex() throws Exception{
-        // Add documents to the index
-        index = new RAMDirectory();
-        NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
-
-        IndexWriter w = new IndexWriter(index,config);
-        addDoc(w, "hello");
-        addDoc(w, "ting");
-        addDoc(w, "test it");
-        addDoc(w, "tim");
-        w.close();
-    }
 
     public void service(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {

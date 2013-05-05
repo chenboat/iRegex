@@ -21,6 +21,7 @@ import java.util.*;
 public class NGramIndexer {
     private String dataSrc;
     private NGramAnalyzer analyzer;
+    public static final String DOC_FIELD_NAME = "gram";
 
     /**
      * @param dataSrc the directory root of all files to index
@@ -83,7 +84,7 @@ public class NGramIndexer {
 
     private static void addDoc(IndexWriter w, String value) throws IOException {
         Document doc = new Document();
-        doc.add(new Field("contents", value, Field.Store.YES, Field.Index.ANALYZED));
+        doc.add(new Field(DOC_FIELD_NAME, value, Field.Store.YES, Field.Index.ANALYZED));
         w.addDocument(doc);
     }
 }

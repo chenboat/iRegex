@@ -2,6 +2,7 @@ package query;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import indexer.NGramIndexer;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -32,7 +33,6 @@ public class IndexQuery {
             TermDocs docs = reader.termDocs(t);
             gram2PostingLst.put(t.toString(),docs);
         }
-        reader.close();
     }
     
     /**
@@ -80,10 +80,10 @@ public class IndexQuery {
                    if((i+j) > str.length()) continue;
 
                    String subStr = str.substring(i,i+j);
-                   if(!gram2PostingLst.containsKey(":"+subStr))
+                   if(!gram2PostingLst.containsKey(NGramIndexer.DOC_FIELD_NAME+":"+subStr))
                        return ImmutableSet.of();
                    result = intersect
-                           (result, getPostingLists(gram2PostingLst.get(":"+subStr)));
+                           (result, getPostingLists(gram2PostingLst.get(NGramIndexer.DOC_FIELD_NAME+":"+subStr)));
                }
            }
            return result;
