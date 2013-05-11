@@ -58,7 +58,7 @@ public class Searchlet extends HttpServlet{
             out.print("Pruned set: ");
             if(set != null){
                 for (Integer aSet : set) {
-                    out.print(aSet + " ");
+                    out.print(reader.document(aSet).get("fn") + " ");
                 }
                 out.println("| " + set.size() + " docs in total");
             }else{

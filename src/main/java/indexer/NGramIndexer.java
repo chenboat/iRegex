@@ -22,6 +22,7 @@ public class NGramIndexer {
     private String dataSrc;
     private NGramAnalyzer analyzer;
     public static final String DOC_FIELD_NAME = "gram";
+    public static final String FILE_NAME = "fn";
 
     /**
      * @param dataSrc the directory root of all files to index
@@ -56,7 +57,7 @@ public class NGramIndexer {
         {
             if(fi.isFile()){
                 String s1 = readFileContent(fi);
-                addDoc(w,s1);
+                addDoc(w,s1,fi.getName());
             }
             else if(fi.isDirectory()){ // a directory itself
                 Collections.addAll(q, fi.listFiles());
@@ -82,9 +83,10 @@ public class NGramIndexer {
         return file_contents.toString();
     }
 
-    private static void addDoc(IndexWriter w, String value) throws IOException {
+    private static void addDoc(IndexWriter w, String value, String fileName) throws IOException {
         Document doc = new Document();
-        doc.add(new Field(DOC_FIELD_NAME, value, Field.Store.YES, Field.Index.ANALYZED));
+        doc.add(new Field(DOC_FIELD_NAME, value, Field.Store.NO, Field.Index.ANALYZED));
+        doc.add(new Field(FILE_NAME,fileName,Field.Store.YES,Field.Index.NO));
         w.addDocument(doc);
     }
 }

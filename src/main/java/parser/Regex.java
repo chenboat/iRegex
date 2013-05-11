@@ -6,6 +6,6 @@ package parser;
  * Time: 9:58 PM
  */
 public abstract class Regex {
-    public static Blank blank = new Blank();
+    public static Primitive blank = new Primitive("");
     public abstract Regex condense();
 }

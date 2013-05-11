@@ -19,19 +19,18 @@ import java.util.Set;
  * Time: 3:49 PM
  */
 public class IndexQuery {
-    private final IndexReader reader;
     private static final int MAX_LEN = 2;
-    private final HashMap<String,TermDocs> gram2PostingLst = new HashMap<String, TermDocs>();
-
+    private final HashMap<String,TermDocs> gram2TermDocs = new HashMap<String, TermDocs>();
+    private final HashMap<String,Set<Integer>> gram2PostingLst = new HashMap<String, Set<Integer>>();
+    
     public IndexQuery(IndexReader r) throws IOException
     {
-        this.reader = r;
-        TermEnum terms = reader.terms();
+        TermEnum terms = r.terms();
         while(terms.next())
         {
             Term t = terms.term();
-            TermDocs docs = reader.termDocs(t);
-            gram2PostingLst.put(t.toString(),docs);
+            TermDocs docs = r.termDocs(t);
+            gram2TermDocs.put(t.toString(),docs);
         }
     }
     
@@ -40,7 +39,8 @@ public class IndexQuery {
      * @param regex: a given regular expression
      * @return a set of document ids surviving the index pruning
      *         if the returned set is null: it means all the documents in the corpus
-     *         
+     *
+     * @throws java.io.IOException if there is io exception
      */
     public Set<Integer> getPrunedSet(String regex) throws IOException
     {
@@ -80,10 +80,13 @@ public class IndexQuery {
                    if((i+j) > str.length()) continue;
 
                    String subStr = str.substring(i,i+j);
-                   if(!gram2PostingLst.containsKey(NGramIndexer.DOC_FIELD_NAME+":"+subStr))
+                   String fieldName = NGramIndexer.DOC_FIELD_NAME+":"+subStr;
+
+                   if(!gram2TermDocs.containsKey(fieldName))
                        return ImmutableSet.of();
                    result = intersect
-                           (result, getPostingLists(gram2PostingLst.get(NGramIndexer.DOC_FIELD_NAME+":"+subStr)));
+                           (result, getPostingList(fieldName));
+                   break; // we have searched the super-string and there is no need to search its substrings
                }
            }
            return result;
@@ -93,22 +96,30 @@ public class IndexQuery {
 
     /**
      * 
-     * @param termDocs
-     * @return
+     * @param str a string
+     * @return the posting list of the str
+     * @throws IOException error
      */
-    private Set<Integer> getPostingLists(TermDocs termDocs) throws IOException{
+    private Set<Integer> getPostingList(String str) throws IOException{
+       if(gram2PostingLst.containsKey(str))
+       {
+           return gram2PostingLst.get(str); //return the list if it is already found 
+       }
+        
        Set<Integer> set = Sets.newHashSet();
+       TermDocs termDocs = gram2TermDocs.get(str);
        while(termDocs.next()){
         set.add(termDocs.doc());
        }
+       gram2PostingLst.put(str,set);
        return set;
     }
 
     /**
      * 
      * @param leftSet: null represents a universal set
-     * @param rightSet
-     * @return
+     * @param rightSet: null is all
+     * @return the result of union; null means all
      */
     private Set<Integer> union(Set<Integer> leftSet, Set<Integer> rightSet) {
         if(leftSet == null || rightSet == null)
@@ -119,8 +130,8 @@ public class IndexQuery {
     /**
      *
      * @param leftSet: null represents a universal set
-     * @param rightSet
-     * @return
+     * @param rightSet: null is all
+     * @return result of intersection
      */
     private Set<Integer> intersect(Set<Integer> leftSet, Set<Integer> rightSet) {
         if(leftSet == null)

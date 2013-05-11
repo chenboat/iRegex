@@ -95,7 +95,7 @@ public class TestIndexQuery extends TestCase {
     public void testIndexQueryOnDiskDir() throws IOException{
         // Examine the index on disk
         IndexReader reader = IndexReader.open(
-                new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k")));
+                new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k/")));
 
         // Prune for a dummy regex
         IndexQuery indexQuery = new IndexQuery(reader);
@@ -105,12 +105,14 @@ public class TestIndexQuery extends TestCase {
         if(set != null){
             Iterator<Integer> itr = set.iterator();
             while(itr.hasNext()){
-                System.out.print(itr.next() + " ");
+                System.out.print(reader.document(itr.next()).get("fn") + " ");
             }
             System.out.println("| " + set.size() + " docs in total");
         }else{
             System.out.println( " All docs are possible matches");
         }
+        
+        
 
         reader.close();
     }

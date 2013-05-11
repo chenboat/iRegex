@@ -27,12 +27,12 @@ public class IndexModule extends AbstractModule {
         //Bind the analyzer to ngram tokenizer
         bind(String.class)
                 .annotatedWith(Names.named("source directory"))
-                .toInstance("/home/ting/Documents/iRegexData/Enron2Lvl/dir0");
+                .toInstance("/home/ting/Documents/iRegexData/Enron2Lvl/dir0/");
     }
 
     @Provides
     NGramAnalyzer provideNGramAnalyzer() {
-        return new NGramAnalyzer(new NGramTokenizer(4));
+        return new NGramAnalyzer(new NGramTokenizer(2));
     }
 
     public static void main(String[] args) throws IOException{
