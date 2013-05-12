@@ -79,7 +79,6 @@
     -->
 
     <property file="build.properties"/>
-    <property file="${user.home}/build.properties"/>
 
 
     <!-- ==================== File and Directory Names ======================== -->
@@ -130,12 +129,15 @@
     <property name="app.path"      value="/${app.name}"/>
     <property name="app.version"   value="0.1-dev"/>
     <property name="build.home"    value="${basedir}/build"/>
-    <property name="catalina.home" value="../../../.."/> <!-- UPDATE THIS! -->
+    <property name="catalina.home" value="${tomcat.home}"/>
     <property name="dist.home"     value="${basedir}/dist"/>
     <property name="docs.home"     value="${basedir}/docs"/>
     <property name="manager.url"   value="http://localhost:8080/manager/text"/>
+    <property name="manager.password"   value="tomcat"/>
+    <property name="manager.username"   value="tomcat"/>
     <property name="src.home"      value="${basedir}/src"/>
     <property name="web.home"      value="${basedir}/web"/>
+    <property name="appserver.home" value="${tomcat.home}"/>
 
 
     <!-- ==================== External Dependencies =========================== -->
@@ -220,8 +222,6 @@
 
     -->
 
-    <taskdef resource="org/apache/catalina/ant/catalina.tasks"
-             classpathref="compile.classpath"/>
 
 
     <!--  ==================== Compilation Control Options ==================== -->
@@ -335,7 +335,7 @@
         </copy>
 
         <!-- Create application JAR file -->
-        <jar jarfile="${dist.home}/${app.name}-${app.version}.war"
+        <jar jarfile="${dist.home}/${app.name}.war"
              basedir="${build.home}"/>
 
         <!-- Copy additional files to ${dist.home} as necessary -->
@@ -365,16 +365,7 @@
 
     -->
 
-    <target name="install" depends="compile"
-            description="Install application to servlet container">
 
-        <deploy url="${manager.url}"
-                username="${manager.username}"
-                password="${manager.password}"
-                path="${app.path}"
-                localWar="file://${build.home}"/>
-
-    </target>
 
 
     <!-- ==================== Javadoc Target ================================== -->
@@ -413,14 +404,30 @@
 
     -->
 
-    <target name="list"
-            description="List installed applications on servlet container">
+    <taskdef name="list"      classname="org.apache.catalina.ant.ListTask"/>
+    <taskdef name="deploy"    classname="org.apache.catalina.ant.DeployTask"/>
+    <taskdef name="reload"    classname="org.apache.catalina.ant.ReloadTask"/>
+    <taskdef name="undeploy"  classname="org.apache.catalina.ant.UndeployTask"/>
 
-        <list    url="${manager.url}"
-                 username="${manager.username}"
-                 password="${manager.password}"/>
 
+    <target name="deploy" description="Install web application"
+            depends="dist">
+        <deploy url="${manager.url}" username="${manager.username}" password="${manager.password}"
+                path="${app.path}" war="file:${dist.home}/${app.name}.war"/>
     </target>
+
+    <target name="reload" description="Reload web application"
+            depends="dist">
+        <reload  url="${manager.url}" username="${manager.username}" password="${manager.password}"
+                 path="${app.path}"/>
+    </target>
+
+    <target name="undeploy" description="Remove web application">
+        <undeploy url="${manager.url}" username="${manager.username}" password="${manager.password}"
+                  path="${app.path}"/>
+    </target>
+
+
 
 
     <!-- ==================== Prepare Target ================================== -->
@@ -480,15 +487,7 @@
 
     -->
 
-    <target name="reload" depends="compile"
-            description="Reload application on servlet container">
 
-        <reload url="${manager.url}"
-                username="${manager.username}"
-                password="${manager.password}"
-                path="${app.path}"/>
-
-    </target>
 
 
     <!-- ==================== Remove Target =================================== -->
@@ -502,15 +501,7 @@
 
     -->
 
-    <target name="remove"
-            description="Remove application on servlet container">
 
-        <undeploy url="${manager.url}"
-                  username="${manager.username}"
-                  password="${manager.password}"
-                  path="${app.path}"/>
-
-    </target>
 
 
 </project>
