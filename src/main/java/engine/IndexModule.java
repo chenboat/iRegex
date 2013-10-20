@@ -36,11 +36,6 @@ public class IndexModule extends AbstractModule {
     }
 
     public static void main(String[] args) throws IOException{
-        Directory indexDir = new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k/"));
-
-        Injector injector = Guice.createInjector(new IndexModule());
-        NGramIndexer indexer = injector.getInstance(NGramIndexer.class);
-        indexer.constructIndex(indexDir);
 
     }
 

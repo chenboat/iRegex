@@ -18,75 +18,52 @@ import java.util.*;
  *
  * The class builds a n-gram Lucene index for all the documents
  */
-public class NGramIndexer {
+public class NGramIndexer implements Indexer{
     private String dataSrc;
     private NGramAnalyzer analyzer;
+    private IndexWriter writer;
+    private boolean storeDocValue = false; // control whether to store file content in the index
     public static final String DOC_FIELD_NAME = "gram";
     public static final String FILE_NAME = "fn";
+    public static final String FILE_CONTENT = "content";
+
 
     /**
-     * @param dataSrc the directory root of all files to index
-     * @param analyzer the n-gram analyzer used by the indexer
-     */
-    @Inject
-    public NGramIndexer(@Named("source directory")  String dataSrc, NGramAnalyzer analyzer){
-        this.dataSrc = dataSrc;
-        this.analyzer = analyzer;
-    }
-
-    /**
-     * This method will scan each document and extract all n-gram up to length
-     * K from the document. The mapping from docID to a set of k-grams will be fed
-     * into a Lucene indexer.
+     * @param analyzer  the n-gram analyzer used by the indexer
      * @param index the output index directory
-     * @throws java.io.IOException when reading from a file or writing to lucene index
+     * @param storeDocValue control whether to store file content in the index
      */
-    public void constructIndex(Directory index) throws IOException{
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
+    public NGramIndexer( NGramAnalyzer analyzer, Directory index, boolean storeDocValue) throws IOException{
+        this.analyzer = analyzer;
+        this.storeDocValue = storeDocValue;
 
-        IndexWriter w = new IndexWriter(index,config);
-        
-        File f = new File(dataSrc);
-        // iterate through all the files root at the data src directory
-        Queue<File> q = new LinkedList<File>();
-        q.add(f);
-        
-        File fi;
-        
-        while((fi=q.poll())!= null)
-        {
-            if(fi.isFile()){
-                String s1 = readFileContent(fi);
-                addDoc(w,s1,fi.getName());
-            }
-            else if(fi.isDirectory()){ // a directory itself
-                Collections.addAll(q, fi.listFiles());
-            }
-        }
-        w.close();  
-        
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,this.analyzer);
+        writer = new IndexWriter(index,config);
+
     }
 
-    private String readFileContent(File f) {
-        StringBuilder file_contents = new StringBuilder(3*IndexerConfig.FS_BLOCK_SIZE);
-        try{
-            FileInputStream fs = new FileInputStream(f);
-            byte[] bs = new byte[IndexerConfig.FS_BLOCK_SIZE];
-            int len;
-            while((len=fs.read(bs))!= -1){
-                file_contents.append(new String(bs,0,len));
-            }
-            fs.close();
-        }catch(Exception e){
-            System.out.println(e.toString());
-        }
-        return file_contents.toString();
-    }
-
-    private static void addDoc(IndexWriter w, String value, String fileName) throws IOException {
+    /**
+     *
+     * @param content document content
+     * @param id doc id
+     * @throws IOException
+     */
+    public void addDoc(String content, String id) throws IOException {
         Document doc = new Document();
-        doc.add(new Field(DOC_FIELD_NAME, value, Field.Store.NO, Field.Index.ANALYZED));
-        doc.add(new Field(FILE_NAME,fileName,Field.Store.YES,Field.Index.NO));
-        w.addDocument(doc);
+        doc.add(new Field(DOC_FIELD_NAME, content, Field.Store.NO, Field.Index.ANALYZED));
+        doc.add(new Field(FILE_NAME,id,Field.Store.YES,Field.Index.NO));
+        if(storeDocValue)
+        {
+            doc.add(new Field(FILE_CONTENT,content,Field.Store.YES, Field.Index.NO));
+        }
+        writer.addDocument(doc);
+    }
+
+    /**
+     * This will close the indexer writer
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        writer.close();
     }
 }

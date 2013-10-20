@@ -3,18 +3,21 @@ package query;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import indexer.NGramIndexer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import parser.*;
+import query.filters.LuceneResultFilter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by User: ting
+ * Created by : Ting Chen
  * Date: 10/7/12
  * Time: 3:49 PM
  */
@@ -22,33 +25,62 @@ public class IndexQuery {
     private static final int MAX_LEN = 2;
     private final HashMap<String,TermDocs> gram2TermDocs = new HashMap<String, TermDocs>();
     private final HashMap<String,Set<Integer>> gram2PostingLst = new HashMap<String, Set<Integer>>();
-    
+    private final IndexReader reader;
+
     public IndexQuery(IndexReader r) throws IOException
     {
-        TermEnum terms = r.terms();
+        reader = r;
+        TermEnum terms = reader.terms();
         while(terms.next())
         {
             Term t = terms.term();
-            TermDocs docs = r.termDocs(t);
+            TermDocs docs = reader.termDocs(t);
             gram2TermDocs.put(t.toString(),docs);
         }
     }
-    
+
     /**
-     * 
-     * @param regex: a given regular expression
+     *
+     *
+     * @param regex : a given regular expression
      * @return a set of document ids surviving the index pruning
      *         if the returned set is null: it means all the documents in the corpus
      *
      * @throws java.io.IOException if there is io exception
      */
-    public Set<Integer> getPrunedSet(String regex) throws IOException
+    public Set<Document> getPrunedSet(String regex)
+            throws IOException
+    {
+        return getPrunedSet(regex,null);
+    }
+
+    /**
+     * 
+     *
+     * @param regex : a given regular expression
+     * @param filter: a filter which may be applied to the results; it can be null
+     * @return a set of document ids surviving the index pruning
+     *         if the returned set is null: it means all the documents in the corpus
+     *
+     * @throws java.io.IOException if there is io exception
+     */
+    public Set<Document> getPrunedSet(String regex, LuceneResultFilter filter)
+            throws IOException
     {
         //1. Parse the regex
         RegexParser parser = new RegexParser(regex);
         Regex r = parser.parse();
         //2. Read the index and prune
-        return prune(r);
+        Set<Document> results = new HashSet<Document>();
+        for(Integer i:prune(r))
+        {
+            Document d = reader.document(i);
+            if(filter == null || filter.filter(d))
+            {
+                results.add(d);
+            }
+        }
+        return results;
     }   
     
     private Set<Integer> prune(Regex r) throws IOException{

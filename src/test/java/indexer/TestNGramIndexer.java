@@ -1,5 +1,7 @@
 package indexer;
 
+import com.google.common.io.Files;
+import indexer.channel.SingleFileIndexer;
 import junit.framework.TestCase;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.NIOFSDirectory;
@@ -15,19 +17,29 @@ import java.io.IOException;
 public class TestNGramIndexer extends TestCase{
 
     public void testNGramIndexer() throws IOException {
-        String sourceDir = "/home/ting/Documents/iRegexData/Enron2Lvl/dir0";
-        String outputDir = "/home/ting/Documents/iRegexData/index/tmp";
+        String sourceFile = "src/test/resources/corpora/names/1.txt";
+        String outputDir = "src/test/resources/indexes/nameIndex/";
+
+
+
+        System.out.println("Working Directory = " +
+                System.getProperty("user.dir"));
 
         // Add documents to the index
         long start = System.currentTimeMillis();
         Directory indexDir = new NIOFSDirectory(new File(outputDir));
-        NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(4));
-        NGramIndexer indexer = new NGramIndexer(sourceDir,analyzer);
+        NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
+        NGramIndexer indexer = new NGramIndexer(analyzer,indexDir,true);
+        SingleFileIndexer fileIndexer = new SingleFileIndexer(sourceFile,indexer);
 
-        indexer.constructIndex(indexDir);
-        
+        fileIndexer.buildIndex();
+
         long end = System.currentTimeMillis();
         System.out.println("Time spend: " + (end - start) + " millisec");
+
+
+
+
     }
     
     

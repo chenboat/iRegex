@@ -1,5 +1,6 @@
 package indexer;
 
+import indexer.channel.SingleFileIndexer;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -20,18 +21,16 @@ public class TestNGramAnalyzer extends TestCase {
 
     public void testNGramAnalyzer() throws IOException {
         // Add documents to the index
+        String sourceFile = "src/test/resources/corpora/names/1.txt";
         Directory index = new RAMDirectory();
         IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
 
-        IndexWriter w = new IndexWriter(index,config);
-        addDoc(w, "hello");
-        addDoc(w, "ting");
-        addDoc(w, "test it");
-        addDoc(w, "tim");
-        w.close();
+        NGramIndexer indexer = new NGramIndexer(analyzer,index,true);
+        SingleFileIndexer fileIndexer = new SingleFileIndexer(sourceFile,indexer);
+
+        fileIndexer.buildIndex();
 
         // Query the index
-        String query = "ti";
         IndexReader reader = IndexReader.open(index);
         TermEnum terms = reader.terms();
         while(terms.next())
@@ -47,9 +46,4 @@ public class TestNGramAnalyzer extends TestCase {
         reader.close();
     }
 
-    private static void addDoc(IndexWriter w, String value) throws IOException {
-        Document doc = new Document();
-        doc.add(new Field("contents", value, Field.Store.YES, Field.Index.ANALYZED));
-        w.addDocument(doc);
-    }
 }

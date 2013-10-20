@@ -3,6 +3,7 @@ package Query;
 import indexer.NGramAnalyzer;
 import indexer.NGramIndexer;
 import indexer.NGramTokenizer;
+import indexer.channel.SingleFileIndexer;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -14,6 +15,7 @@ import org.apache.lucene.util.Version;
 import org.junit.After;
 import org.junit.Before;
 import query.IndexQuery;
+import query.filters.RegexLuceneResultFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +28,7 @@ import java.util.Set;
  * Time: 5:20 PM
  */
 public class TestIndexQuery extends TestCase {
-    
+    public final NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
     
     @Before
     public void setUp(){
@@ -41,19 +43,17 @@ public class TestIndexQuery extends TestCase {
     
     public void testIndexQueryOnRAMDir() throws IOException{
         // Add documents to the index
+        // Add documents to the index
+        String sourceFile = "src/test/resources/corpora/names/1.txt";
         Directory index = new RAMDirectory();
-        NGramAnalyzer analyzer = new NGramAnalyzer(new NGramTokenizer(2));
         IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
 
-        IndexWriter w = new IndexWriter(index,config);
-        addDoc(w, "hello");
-        addDoc(w, "ting");
-        addDoc(w, "test it");
-        addDoc(w, "tim");
-        w.close();
+        NGramIndexer indexer = new NGramIndexer(analyzer,index,true);
+        SingleFileIndexer fileIndexer = new SingleFileIndexer(sourceFile,indexer);
 
-        // Examine the index
-        String query = "ti";
+        fileIndexer.buildIndex();
+
+        // Query the index
         IndexReader reader = IndexReader.open(index);
         TermEnum terms = reader.terms();
         while(terms.next())
@@ -69,14 +69,15 @@ public class TestIndexQuery extends TestCase {
         
         // Prune for a dummy regex
         IndexQuery indexQuery = new IndexQuery(reader);
-        Set<Integer> set = indexQuery.getPrunedSet("hel*");
-
+        String pattern = "Maa*";
+        RegexLuceneResultFilter filter = new RegexLuceneResultFilter(pattern,"content");
+        Set<Document> set = indexQuery.getPrunedSet(pattern,filter);
 
         System.out.print("Pruned set: ");
         if(set != null){
-            Iterator<Integer> itr = set.iterator();
+            Iterator<Document> itr = set.iterator();
             while(itr.hasNext()){
-               System.out.print(itr.next() + " ");  
+               System.out.print(itr.next().get("content") + " ");
             }
             System.out.println("| " + set.size() + " docs in total");
         }else{
@@ -86,34 +87,6 @@ public class TestIndexQuery extends TestCase {
         reader.close();    
     }
 
-    private void addDoc(IndexWriter w, String value) throws IOException {
-        Document doc = new Document();
-        doc.add(new Field(NGramIndexer.DOC_FIELD_NAME, value, Field.Store.YES, Field.Index.ANALYZED));
-        w.addDocument(doc);
-    }
 
-    public void testIndexQueryOnDiskDir() throws IOException{
-        // Examine the index on disk
-        IndexReader reader = IndexReader.open(
-                new NIOFSDirectory(new File("/home/ting/Documents/iRegexData/index/enron1k/")));
 
-        // Prune for a dummy regex
-        IndexQuery indexQuery = new IndexQuery(reader);
-        Set<Integer> set = indexQuery.getPrunedSet("Les Rawson");
-
-        System.out.print("Pruned set for on disk index: ");
-        if(set != null){
-            Iterator<Integer> itr = set.iterator();
-            while(itr.hasNext()){
-                System.out.print(reader.document(itr.next()).get("fn") + " ");
-            }
-            System.out.println("| " + set.size() + " docs in total");
-        }else{
-            System.out.println( " All docs are possible matches");
-        }
-        
-        
-
-        reader.close();
-    }
 }

@@ -53,12 +53,12 @@ public class Searchlet extends HttpServlet{
 
             reader = IndexReader.open(index);
             IndexQuery indexQuery = new IndexQuery(reader);
-            Set<Integer> set = indexQuery.getPrunedSet(query);
+            Set<Document> set = indexQuery.getPrunedSet(query);
 
             out.print("Pruned set: ");
             if(set != null){
-                for (Integer aSet : set) {
-                    out.print(reader.document(aSet).get("fn") + " ");
+                for (Document aSet : set) {
+                    out.print(aSet.get("fn") + " ");
                 }
                 out.println("| " + set.size() + " docs in total");
             }else{
