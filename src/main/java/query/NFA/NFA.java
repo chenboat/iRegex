@@ -40,5 +40,16 @@ public class NFA {
         finalStates.add(s);
     }
 
+    public String toString(){
+        StringBuffer sb = new StringBuffer();
+        sb.append("[Init State]:" + initState + "\n");
+        for(NFAState s: finalStates)
+        {
+            sb.append("[Final state]:" + s + "\n");
+        }
+
+        return sb.toString();
+    }
+
 
 }

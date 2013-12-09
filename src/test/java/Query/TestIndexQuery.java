@@ -69,7 +69,7 @@ public class TestIndexQuery extends TestCase {
         
         // Prune for a dummy regex
         IndexQuery indexQuery = new IndexQuery(reader);
-        String pattern = "Maa*";
+        String pattern = "(J|M)aa*y";
         RegexLuceneResultFilter filter = new RegexLuceneResultFilter(pattern,"content");
         Set<Document> set = indexQuery.getPrunedSet(pattern,filter);
 

@@ -11,16 +11,12 @@ import java.util.List;
  * A class representing a state in a NFA
  */
 public class NFAState {
-    private final String string; // the string this node
-    public static final String epilsonStr = ""; // an empty string denoting epsilon state
-
     public List<Transition> getTransitions() {
         return transitions;
     }
 
     private List<Transition> transitions; // a set of transition from the current state
-    public NFAState(String str) {
-        string = str;
+    public NFAState() {
         transitions = new ArrayList<Transition>();
     }
 
@@ -30,8 +26,15 @@ public class NFAState {
     }
 
 
-    public String getString() {
-        return string;
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("[State]").append(hashCode()).append("[numTransitions]").append(transitions.size()).append("\n");
+        for(Transition t: transitions)
+        {
+            sb.append("[Transition]").append(t).append("\n");
+        }
+
+        return sb.toString();
     }
 
 

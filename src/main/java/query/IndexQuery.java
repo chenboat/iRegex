@@ -1,5 +1,6 @@
 package query;
 
+import Utility.PostingListOperation;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import indexer.NGramIndexer;
@@ -22,8 +23,8 @@ import java.util.Set;
  * Time: 3:49 PM
  */
 public class IndexQuery {
-    private static final int MAX_LEN = 2;
-    private final HashMap<String,TermDocs> gram2TermDocs = new HashMap<String, TermDocs>();
+    protected static final int MAX_LEN = 2;
+    protected final HashMap<String,TermDocs> gram2TermDocs = new HashMap<String, TermDocs>();
     private final HashMap<String,Set<Integer>> gram2PostingLst = new HashMap<String, Set<Integer>>();
     private final IndexReader reader;
 
@@ -89,13 +90,13 @@ public class IndexQuery {
            Choice c = (Choice)r;
            Set<Integer> leftSet = prune(c.getLeftRegex());
            Set<Integer> rightSet = prune(c.getRightRegex());
-           return union(leftSet, rightSet);
+           return PostingListOperation.union(leftSet, rightSet);
        }else if(r instanceof Sequence)
        {
            Sequence s = (Sequence)r;
            Set<Integer> leftSet = prune(s.getLeftRegex());
            Set<Integer> rightSet = prune(s.getRightRegex());
-           return intersect(leftSet, rightSet);
+           return PostingListOperation.intersect(leftSet, rightSet);
        }else if(r instanceof Repetition)
        {
            return null;
@@ -116,7 +117,7 @@ public class IndexQuery {
 
                    if(!gram2TermDocs.containsKey(fieldName))
                        return ImmutableSet.of();
-                   result = intersect
+                   result = PostingListOperation.intersect
                            (result, getPostingList(fieldName));
                    break; // we have searched the super-string and there is no need to search its substrings
                }
@@ -132,7 +133,7 @@ public class IndexQuery {
      * @return the posting list of the str
      * @throws IOException error
      */
-    private Set<Integer> getPostingList(String str) throws IOException{
+    protected Set<Integer> getPostingList(String str) throws IOException{
        if(gram2PostingLst.containsKey(str))
        {
            return gram2PostingLst.get(str); //return the list if it is already found 
@@ -147,29 +148,5 @@ public class IndexQuery {
        return set;
     }
 
-    /**
-     * 
-     * @param leftSet: null represents a universal set
-     * @param rightSet: null is all
-     * @return the result of union; null means all
-     */
-    private Set<Integer> union(Set<Integer> leftSet, Set<Integer> rightSet) {
-        if(leftSet == null || rightSet == null)
-            return null;
-        return Sets.union(leftSet,rightSet);
-    }
 
-    /**
-     *
-     * @param leftSet: null represents a universal set
-     * @param rightSet: null is all
-     * @return result of intersection
-     */
-    private Set<Integer> intersect(Set<Integer> leftSet, Set<Integer> rightSet) {
-        if(leftSet == null)
-            return rightSet;
-        else if(rightSet == null)
-            return leftSet;
-        return Sets.intersection(leftSet, rightSet);
-    }
 }
