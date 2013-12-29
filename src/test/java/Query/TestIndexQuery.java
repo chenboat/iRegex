@@ -6,20 +6,15 @@ import indexer.NGramTokenizer;
 import indexer.channel.SingleFileIndexer;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.index.*;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 import org.junit.After;
 import org.junit.Before;
 import query.IndexQuery;
 import query.filters.RegexLuceneResultFilter;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -46,7 +41,6 @@ public class TestIndexQuery extends TestCase {
         // Add documents to the index
         String sourceFile = "src/test/resources/corpora/names/1.txt";
         Directory index = new RAMDirectory();
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,analyzer);
 
         NGramIndexer indexer = new NGramIndexer(analyzer,index,true);
         SingleFileIndexer fileIndexer = new SingleFileIndexer(sourceFile,indexer);
@@ -75,9 +69,8 @@ public class TestIndexQuery extends TestCase {
 
         System.out.print("Pruned set: ");
         if(set != null){
-            Iterator<Document> itr = set.iterator();
-            while(itr.hasNext()){
-               System.out.print(itr.next().get("content") + " ");
+            for (Document aSet : set) {
+                System.out.print(aSet.get("content") + " ");
             }
             System.out.println("| " + set.size() + " docs in total");
         }else{
