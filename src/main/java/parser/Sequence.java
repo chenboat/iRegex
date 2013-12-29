@@ -19,6 +19,12 @@ public class Sequence extends Regex {
         second = second.condense();
         if(first instanceof Primitive && second instanceof Primitive){
             return new Primitive(first.toString() + second.toString());
+        }else if(first instanceof Primitive && first.toString().length() == 0)
+        {
+            return second;
+        }else if(second instanceof Primitive && second.toString().length() == 0)
+        {
+            return first;
         }
         else
             return this;

@@ -7,14 +7,28 @@ package parser;
  */
 public class Repetition extends Regex {
     private final Regex internal ;
+
+    public int getMin() {
+        return min;
+    }
+
+    public int getMax() {
+        return max;
+    }
+
     private final int min; // the min time that the internal regex can repeat
     private final int max; // the max time that the internal regex can repeat
-
     public Repetition(Regex in, int l, int h){
         internal = in;
         min = l;
         max = h;
     }
+
+    public Regex getInternal() {
+        return internal;
+    }
+
+
 
 
     public Regex condense(){
