@@ -32,9 +32,8 @@ public class SingleFileIndexer {
         Scanner f = new Scanner(new FileInputStream(filename));
 
         int count = 0;
-        while(f.hasNextLine())
-        {
-            indexer.addDoc(f.next(),new Integer(count ++).toString());
+        while(f.hasNextLine()) {
+            indexer.addDoc(f.nextLine(), Integer.toString(count++));
         }
         indexer.close();
     }
