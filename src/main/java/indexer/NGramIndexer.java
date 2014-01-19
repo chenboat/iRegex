@@ -1,7 +1,5 @@
 package indexer;
 
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.*;
@@ -9,7 +7,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
 
 import java.io.*;
-import java.util.*;
 
 /**
  * Created by User: ting chen
@@ -19,8 +16,6 @@ import java.util.*;
  * The class builds a n-gram Lucene index for all the documents
  */
 public class NGramIndexer implements Indexer{
-    private String dataSrc;
-    private NGramAnalyzer analyzer;
     private IndexWriter writer;
     private boolean storeDocValue = false; // control whether to store file content in the index
     public static final String DOC_FIELD_NAME = "gram";
@@ -33,13 +28,10 @@ public class NGramIndexer implements Indexer{
      * @param index the output index directory
      * @param storeDocValue control whether to store file content in the index
      */
-    public NGramIndexer( NGramAnalyzer analyzer, Directory index, boolean storeDocValue) throws IOException{
-        this.analyzer = analyzer;
+    public NGramIndexer(NGramAnalyzer analyzer, Directory index, boolean storeDocValue) throws IOException{
         this.storeDocValue = storeDocValue;
-
-        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36,this.analyzer);
+        IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_36, analyzer);
         writer = new IndexWriter(index,config);
-
     }
 
     /**

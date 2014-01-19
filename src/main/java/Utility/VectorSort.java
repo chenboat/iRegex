@@ -1,7 +1,7 @@
 package Utility;
 
 import java.util.Vector;
-import indexer.StringValuePair;
+import indexer.trex.StringValuePair;
 
 public class VectorSort {
 	

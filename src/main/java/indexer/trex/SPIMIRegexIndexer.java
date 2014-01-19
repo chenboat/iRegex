@@ -1,4 +1,4 @@
-package indexer;
+package indexer.trex;
 
 import Utility.*;
 
@@ -729,7 +729,7 @@ public class SPIMIRegexIndexer {
 							(bs[i+10]&0xff)<<8 | (bs[i+11]&0xff);
 					int lastID = bs[i+12]<<24 | (bs[i+13]&0xff)<<16 | 
 							(bs[i+14]&0xff)<<8 | (bs[i+15]&0xff);
-					KGramRecord rec = new KGramRecord(size,offset,count,lastID); 
+					KGramRecord rec = new KGramRecord(size,offset,count,lastID);
 					gramLst[i-1].add(new StringValuePair(gram,rec));
 					if(IndexerConfig.DEBUG)
 						System.out.println(Utility.transformText(gram)+":"

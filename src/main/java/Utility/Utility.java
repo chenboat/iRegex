@@ -1,9 +1,7 @@
 package Utility;
 
 import java.io.File;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 
 public class Utility {
 	
@@ -333,6 +331,27 @@ public class Utility {
 				System.exit(1);
 			}
 		}
-	}	
-	
+	}
+
+    /**
+     *
+     * @param fileString the string to extract the ngrams
+     * @param MAX_NGRAM_LENGTH max ngram length
+     * @return all the unique ngrams of length up to MAX_NGRAM_LENGTH
+     */
+
+    public static Set<String> getUniqueNGrams(String fileString, int MAX_NGRAM_LENGTH) {
+        Set<String> grams = new HashSet<String>();
+        for(int i = 0; i < fileString.length(); i++){
+            for (int j = 1; j <= MAX_NGRAM_LENGTH && (i+j) <= fileString.length(); j++)
+            {
+                String gram = fileString.substring(i, i+j);
+                if(!grams.contains(gram))
+                    grams.add(gram);
+            }
+        }
+        return grams;
+    }
+
+
 }

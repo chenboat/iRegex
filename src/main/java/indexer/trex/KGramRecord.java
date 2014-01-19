@@ -1,4 +1,4 @@
-package indexer;
+package indexer.trex;
 
 /*
  * The record associated with each kgram in an updatable index

@@ -1,8 +1,7 @@
 package indexer.channel;
 
 import indexer.Indexer;
-import indexer.IndexerConfig;
-import org.apache.lucene.store.Directory;
+import indexer.trex.IndexerConfig;
 
 import java.io.File;
 import java.io.FileInputStream;
